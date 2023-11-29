@@ -1,22 +1,14 @@
 # Módulo Cliente
-import http.client
+class Client:
+    def __init__(self, host = 'localhost', port = 5000):
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.connect((host, port))
 
-def iniciar_cliente():
-    host = '192.168.0.3'  # Substitua 'seu_endereco_ip' pelo endereço IP público do servidor
-    port = 8000
-    conexao = http.client.HTTPConnection(host, port)
+    def send_message(self, username, message):
+        message = json.dumps({"username": username, "message": message})
+        self.socket.send(message.encode())
 
-    while True:
-        comando = input("Digite um comando (ou 'sair' para terminar): ")
-        if comando.lower() == 'sair':
-            break
-
-        conexao.request("GET", "/" + comando)
-        resposta = conexao.getresponse()
-        mensagem = resposta.read()
-        print('Recebido do servidor:', mensagem)
-
-    conexao.close()
-
-if __name__ == '__main__':
-    iniciar_cliente()
+    def receive_message(self):
+        message = self.socket.recv(1024)
+        message = json.loads(message.decode())
+        return f"{message['username']}: {message['message']}"

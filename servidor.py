@@ -1,37 +1,42 @@
 # Módulo Servidor
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from cryptography.fernet import Fernet
+import socket
+import threading
+import json
 
-chave = Fernet.generate_key()  # Gera uma chave de criptografia
-criptografia = Fernet(chave)
+class Server:
+    def __init__(self, host = 'localhost', port = 5000):
+        self.host = host
+        self.port = port
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.bind((self.host, self.port))
+        self.server.listen(5)
+        self.clients = []
+        self.lock = threading.Lock()
 
-class Servidor(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-        mensagem = "Olá, Cliente!"
-        mensagem_criptografada = criptografia.encrypt(mensagem.encode())  # Criptografa a mensagem
-        self.wfile.write(mensagem_criptografada)
-        return
+    def broadcast(self, message, source):
+        with self.lock:
+            for client in self.clients:
+                if client != source:
+                    client.send(message)
 
-    def do_POST(self):
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        if post_data.decode() == 'stop':
-            print("Comando 'stop' recebido, finalizando a conexão...")
-            self.server.shutdown()
+    def handle(self, client):
+        while True:
+            try:
+                message = client.recv(1024)
+                message = json.loads(message.decode())
+                print(f"{message['username']}: {message['message']}")
+                self.broadcast(message, client)
+            except:
+                with self.lock:
+                    self.clients.remove(client)
+                client.close()
+                break
 
-def iniciar_servidor():
-    host = '192.168.0.3'  # Substitua 'seu_endereco_ip' pelo endereço IP público da sua máquina
-    port = 8000
-    servidor = HTTPServer((host, port), Servidor)
-    print('Servidor iniciado...')
-    try:
-        servidor.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    servidor.server_close()
-
-if __name__ == '__main__':
-    iniciar_servidor()
+    def run(self):
+        while True:
+            client, address = self.server.accept()
+            with self.lock:
+                self.clients.append(client)
+            print(f"Conexão estabelecida com {str(address)}")
+            thread = threading.Thread(target=self.handle, args=(client,))
+            thread.start()
