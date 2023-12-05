@@ -1,6 +1,7 @@
 import socket
 import sys
 import json
+import threading
 from playsound import playsound
 import pyttsx3
 
@@ -36,11 +37,27 @@ def iniciar_conexao(endereco_ip):
     except ConnectionError as erro:
         print("A conexão foi negada. Tente novamente")
 
+    username = input("\nInsira seu nome de usuário: ")  # Solicita o nome de usuário ao cliente
+    conexao_tcp.send(bytes(json.dumps(username), "utf-8"))  # Envia o nome de usuário ao servidor
+
     return conexao_tcp
+
+
+def receber_mensagens(conexao_tcp):
+    while True:
+        receber_mensagem = json.loads(conexao_tcp.recv(Buffer).decode("utf-8"))
+        if receber_mensagem != '':
+            print(f"Servidor: {receber_mensagem}")
+            if receber_mensagem == "exit":
+                print('O servidor encerrou a conexão. Quer desconectar também? Digite exit também.')
 
 
 def conversa(conexao_tcp):
     print("Vamos começar o chat!\n Quando quiser parar, digite exit")
+
+    # Inicia uma nova thread para receber mensagens
+    thread = threading.Thread(target=receber_mensagens, args=(conexao_tcp,))
+    thread.start()
 
     while True:
         mensagem = input("\nVocê: ")
@@ -53,13 +70,6 @@ def conversa(conexao_tcp):
 
             if mensagem == "exit":
                 break
-
-        receber_mensagem = json.loads(conexao_tcp.recv(Buffer).decode("utf-8"))
-
-        if receber_mensagem != '':
-            print(f"Servidor: {receber_mensagem}")
-            if receber_mensagem == "exit":
-                print('O servidor encerrou a conexão. Quer desconectar também? Digite exit também.')
 
 
 if __name__ == '__main__':
@@ -74,7 +84,7 @@ if __name__ == '__main__':
     text = "Bem vindo ao Batichati"
     engine.say(text)
     engine.runAndWait()
-    playsound("Batman Opening and Closing Theme 1966 - 1968 With Snippets (mp3cut.net).mp3")
+    #playsound("Batman Opening and Closing Theme 1966 - 1968 With Snippets (mp3cut.net).mp3")
 
     conexao = conexao()
     conversa(conexao)
