@@ -46,6 +46,7 @@ def listening(conexao_tcp, ip_cliente, username):
             for cliente in clientes:
                 if cliente[1] != ip_cliente:  # Verifica se o cliente atual não é o remetente
                     cliente[0].send(bytes(json.dumps(f"{username}: {receber_mensagem}"), "utf8"))
+
         # Cometado as linhas abaixo para remover a opção do servidor enviar mensagens
         # enviando_mensagem = input('Você: ')
         # if enviando_mensagem != "":
@@ -68,5 +69,8 @@ if __name__ == '__main__':
         conexao_corrente, cliente, username = confirmacao_do_cliente(servidor)
         thread = threading.Thread(target=handle_client, args=(conexao_corrente, cliente, username))
         thread.start()
-
     sys.exit()
+
+
+
+>>>>>>> 58df13ce1350cd2ac6ce76f0b8bebe5b1f1a2f64

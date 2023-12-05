@@ -47,10 +47,9 @@ def receber_mensagens(conexao_tcp):
     while True:
         receber_mensagem = json.loads(conexao_tcp.recv(Buffer).decode("utf-8"))
         if receber_mensagem != '':
-            print(f"Servidor: {receber_mensagem}")
+            print(f"\n{receber_mensagem}")
             if receber_mensagem == "exit":
                 print('O servidor encerrou a conexão. Quer desconectar também? Digite exit também.')
-
 
 def conversa(conexao_tcp):
     print("Vamos começar o chat!\n Quando quiser parar, digite exit")
@@ -84,7 +83,7 @@ if __name__ == '__main__':
     text = "Bem vindo ao Batichati"
     engine.say(text)
     engine.runAndWait()
-    #playsound("Batman Opening and Closing Theme 1966 - 1968 With Snippets (mp3cut.net).mp3")
+    playsound("Batman Opening and Closing Theme 1966 - 1968 With Snippets (mp3cut.net).mp3")
 
     conexao = conexao()
     conversa(conexao)
@@ -93,3 +92,6 @@ if __name__ == '__main__':
         conexao.close()
     except ConnectionError as erro:
         print("A conexão TCP foi encerrada")
+
+
+>>>>>>> 58df13ce1350cd2ac6ce76f0b8bebe5b1f1a2f64
