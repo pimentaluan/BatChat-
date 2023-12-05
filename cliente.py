@@ -92,6 +92,3 @@ if __name__ == '__main__':
         conexao.close()
     except ConnectionError as erro:
         print("A conexão TCP foi encerrada")
-
-
->>>>>>> 58df13ce1350cd2ac6ce76f0b8bebe5b1f1a2f64

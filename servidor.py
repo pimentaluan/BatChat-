@@ -70,7 +70,3 @@ if __name__ == '__main__':
         thread = threading.Thread(target=handle_client, args=(conexao_corrente, cliente, username))
         thread.start()
     sys.exit()
-
-
-
->>>>>>> 58df13ce1350cd2ac6ce76f0b8bebe5b1f1a2f64
