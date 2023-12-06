@@ -2,7 +2,6 @@ import socket
 import sys
 import threading
 import json
-from playsound import playsound
 
 Ip_servidor = ''
 Porta_servidor = 50000
@@ -23,11 +22,10 @@ def concetar_ao_servidor():
 
 def confirmacao_do_cliente(conexao_tcp):
     conexao, ip_cliente = conexao_tcp.accept()
-    username = conexao.recv(Buffer).decode('utf-8')  # Recebe o nome de usuário do cliente
+    username = conexao.recv(Buffer).decode('utf-8')
     print(f'O cliente com o nome de usuário {username} e ip {ip_cliente[0]} foi conectado')
-    clientes.append((conexao, ip_cliente, username))  # Armazena o nome de usuário junto com a conexão e o IP
-    return conexao, ip_cliente, username  # Retorna o nome de usuário
-
+    clientes.append((conexao, ip_cliente, username)) 
+    return conexao, ip_cliente, username 
 
 def encerrar_conexao(conexao_tcp):
     print("Encerrando a conexão e saindo do programa")
