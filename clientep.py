@@ -16,7 +16,7 @@ def conectar_ao_servidor():
             print("Você está conectado.")
             return conexao_tcp
         except (socket.gaierror, ConnectionRefusedError):
-            print("Esse IP não corresponde com o do servidor. Tente novamente.")
+            print("Esse IP não corresponde ao do servidor. Tente novamente.")
 
 def enviar_mensagem(conexao_tcp):
     while True:
@@ -34,47 +34,53 @@ def receber_mensagem(conexao_tcp):
             print(mensagem)
             if mensagem.lower() == 'exit':
                 break
-        except ConnectionAbortedError:
+        except ConnectionResetError:
             break
 
 def main():
-    conexao = conectar_ao_servidor()
-    while True:
+    try:
+        conexao = conectar_ao_servidor()
         escolha = input("Digite 'REGISTRAR' para criar uma nova conta ou 'ENTRAR' para entrar: ").lower()
-        if escolha in ['registrar', 'entrar']:
-            conexao.send(bytes(escolha, "utf-8"))
-            break
-        else:
-            print("Escolha inválida. Tente novamente.")
+        conexao.send(bytes(escolha, "utf-8"))
 
-    if escolha == 'registrar':
-        nome = input('Digite o nome do usuário para registro')
-        senha = input("Digite sua senha para registro: ")
-        conexao.send(bytes(senha, "utf-8"))
+        if escolha == 'registrar':
+            nome = input('Digite o nome do usuário para registro: ')
+            senha = input("Digite sua senha para registro: ")
+            conexao.send(bytes(nome, "utf-8"))
+            conexao.send(bytes(senha, "utf-8"))
+            
+            # Receber resposta do servidor após o registro
+            resposta_registro = conexao.recv(Buffer).decode('utf-8')
+            print(resposta_registro)
 
-    elif escolha == 'entrar':
-        username = input("Digite seu nome de usuário: ")
-        senha = input('Digite sua senha: ')
-        conexao.send(bytes(username, "utf-8"))
-        conexao.send(bytes(senha, "utf-8"))
+        elif escolha == 'entrar':
+            username = input("Digite seu nome de usuário: ")
+            senha = input('Digite sua senha: ')
+            conexao.send(bytes(username, "utf-8"))
+            conexao.send(bytes(senha, "utf-8"))
+            resposta_login = conexao.recv(Buffer).decode('utf-8').lower()
 
-    # Recebe a opção de registro ou login imediatamente após a conexão
-    opcao = conexao.recv(Buffer).decode('utf-8').lower()
+            if "bem-vindo" in resposta_login:
+                print(resposta_login)
 
-    if "registro" in opcao or "login" in opcao:
-        senha = input("Digite sua senha: ")
-        conexao.send(bytes(senha, "utf-8"))
+                # Iniciar threads de envio e recebimento apenas após o login
+                enviar_thread = threading.Thread(target=enviar_mensagem, args=(conexao,))
+                receber_thread = threading.Thread(target=receber_mensagem, args=(conexao,))
 
-    print("Você está conectado.")
+                enviar_thread.start()
+                receber_thread.start()
 
-    enviar_thread = threading.Thread(target=enviar_mensagem, args=(conexao,))
-    receber_thread = threading.Thread(target=receber_mensagem, args=(conexao,))
+                enviar_thread.join()
+                receber_thread.join()
 
-    enviar_thread.start()
-    receber_thread.start()
+            else:
+                print("Você precisa criar uma conta.")
+                return
 
-    enviar_thread.join()
-    receber_thread.join()
+    except KeyboardInterrupt:
+        print("Cliente encerrado.")
 
 if __name__ == '__main__':
     main()
+
+
