@@ -27,7 +27,7 @@ def process_message(message, client_socket):
 
     message = message.upper()
 
-    if message.startswith('REG'):
+    if message.startswith('NOVO'):
         split_message = message.split(' ')
         if len(split_message) < 3:
             return 'ERRO-702\n'
@@ -42,7 +42,7 @@ def process_message(message, client_socket):
         user_sockets[username] = client_socket
         return 'PASS-213\n'  # Usuário registrado com sucesso
 
-    elif message.startswith('LOG'):
+    elif message.startswith('ENTRAR'):
         split_message = message.split(' ')
         if len(split_message) < 3:
             return 'ERRO-702\n'
@@ -78,10 +78,10 @@ def process_message(message, client_socket):
         user_chats[username] = user_to_chat
         user_chats[user_to_chat] = username
 
-        user_sockets[user_to_chat].sendall(f'CHAT-START {username}\n'.encode())
+        user_sockets[user_to_chat].sendall(f'CHAT-INICIAR {username}\n'.encode())
         return 'PASS-215\n'  # Iniciar chat com o usuário específico
 
-    elif message.startswith('SEND'):
+    elif message.startswith('ENVIAR'):
         split_message = message.split(' ', 2)
         if len(split_message) < 3:
             return 'ERRO-702\n'  # Comando incompleto
@@ -96,7 +96,7 @@ def process_message(message, client_socket):
         if not receiver:
             return 'ERRO-708\n'  # Chat não iniciado
 
-        user_sockets[receiver].sendall(f'RECEIVE {sender}: {message_content}\n'.encode())
+        user_sockets[receiver].sendall(f'RECEBIDO {sender}: {message_content}\n'.encode())
 
         return 'PASS-216\n'  # Mensagem enviada com sucesso
 
