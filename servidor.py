@@ -1,70 +1,125 @@
 import socket
-import sys
 import threading
-import json
 
-Ip_servidor = ''
-Porta_servidor = 50000
-Buffer = 1024
+HOST = '0.0.0.0'  # Endereço IP do servidor
+PORT = 12345  # Porta de escuta do servidor
 
-clientes = []
+users = {}  # Dicionário para armazenar usuários
+user_sockets = {}  # Dicionário para mapear usuários a seus respectivos sockets
+user_chats = {}  # Dicionário para controlar chats
 
+def handle_client(client_socket, client_address):
+    global users, user_sockets, user_chats
 
-def concetar_ao_servidor():
-    conexao_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    conexao_tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    servidor_socket = (Ip_servidor, Porta_servidor)
-    conexao_tcp.bind(servidor_socket)
-    conexao_tcp.listen(1)
-
-    return conexao_tcp
-
-
-def confirmacao_do_cliente(conexao_tcp):
-    conexao, ip_cliente = conexao_tcp.accept()
-    username = conexao.recv(Buffer).decode('utf-8')
-    print(f'O cliente com o nome de usuário {username} e ip {ip_cliente[0]} foi conectado')
-    clientes.append((conexao, ip_cliente, username)) 
-    return conexao, ip_cliente, username 
-
-def encerrar_conexao(conexao_tcp):
-    print("Encerrando a conexão e saindo do programa")
-    conexao_tcp.close()
-
-
-def listening(conexao_tcp, ip_cliente, username):
-    print("Começando o BATchat. Esperando a mensagem...")
     while True:
-        receber_mensagem = json.loads(conexao_tcp.recv(Buffer).decode('utf-8'))
-        if receber_mensagem != '':
-            print(f'\n{username}: {receber_mensagem}')  # Imprime a mensagem com o nome de usuário
-            if receber_mensagem == 'exit':
-                print("O servidor encerrou a conexão. Quer desconectar também? Digite exit também.")
-            # Envia a mensagem para todos os clientes, exceto o remetente
-            for cliente in clientes:
-                if cliente[1] != ip_cliente:  # Verifica se o cliente atual não é o remetente
-                    cliente[0].send(bytes(json.dumps(f"{username}: {receber_mensagem}"), "utf8"))
+        data = client_socket.recv(1024)
+        if not data:
+            print('CLIENT DISCONNECTED:', client_address)
+            break
 
-        # Cometado as linhas abaixo para remover a opção do servidor enviar mensagens
-        # enviando_mensagem = input('Você: ')
-        # if enviando_mensagem != "":
-        #     # Envia a mensagem para todos os clientes
-        #     for cliente in clientes:
-        #         cliente[0].send(bytes(json.dumps(enviando_mensagem), "utf8"))
-        #     if enviando_mensagem == "exit":
-        #         break
-    encerrar_conexao(conexao_tcp)
+        received_message = data.decode().strip()
+        print('RECEIVED MESSAGE:', received_message)
+        response_message = process_message(received_message, client_socket)
+        client_socket.sendall(response_message.encode())
 
+def process_message(message, client_socket):
+    global users, user_sockets, user_chats
 
-def handle_client(conexao_corrente, cliente, username):
-    listening(conexao_corrente, cliente, username)
+    message = message.upper()
 
+    if message.startswith('REG'):
+        split_message = message.split(' ')
+        if len(split_message) < 3:
+            return 'ERRO-702\n'
+
+        username = split_message[1]
+        password = split_message[2]
+
+        if username in users:
+            return 'ERRO-703\n'  # Usuário já existe
+
+        users[username] = password
+        user_sockets[username] = client_socket
+        return 'PASS-213\n'  # Usuário registrado com sucesso
+
+    elif message.startswith('LOG'):
+        split_message = message.split(' ')
+        if len(split_message) < 3:
+            return 'ERRO-702\n'
+
+        username = split_message[1]
+        password = split_message[2]
+
+        if username not in users:
+            return 'ERRO-704\n'  # Usuário não encontrado
+
+        if users[username] != password:
+            return 'ERRO-705\n'  # Senha incorreta
+
+        return 'PASS-214 {}\n'.format(username)  # Usuário logado com sucesso
+
+    elif message == 'LIST':
+        users_list = '\n'.join(users.keys()) + '\n'
+        return users_list
+
+    elif message.startswith('CHAT'):
+        split_message = message.split(' ')
+        if len(split_message) < 2:
+            return 'ERRO-702\n'  # Comando incompleto
+
+        user_to_chat = split_message[1]
+        if user_to_chat not in users:
+            return 'ERRO-706\n'  # Usuário não encontrado
+
+        # Se já estiver em um chat, não inicia outro
+        if user_to_chat in user_chats or username in user_chats.values():
+            return 'ERRO-707\n'  # Já está em um chat
+
+        user_chats[username] = user_to_chat
+        user_chats[user_to_chat] = username
+
+        user_sockets[user_to_chat].sendall(f'CHAT-START {username}\n'.encode())
+        return 'PASS-215\n'  # Iniciar chat com o usuário específico
+
+    elif message.startswith('SEND'):
+        split_message = message.split(' ', 2)
+        if len(split_message) < 3:
+            return 'ERRO-702\n'  # Comando incompleto
+
+        sender = split_message[1]
+        message_content = split_message[2]
+
+        if sender not in users:
+            return 'ERRO-706\n'  # Usuário não encontrado
+
+        receiver = user_chats.get(sender)
+        if not receiver:
+            return 'ERRO-708\n'  # Chat não iniciado
+
+        user_sockets[receiver].sendall(f'RECEIVE {sender}: {message_content}\n'.encode())
+
+        return 'PASS-216\n'  # Mensagem enviada com sucesso
+
+    return 'ERRO-500\n'
+
+def main():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+    server_socket.bind((HOST, PORT))
+    server_socket.listen(5)
+
+    print('SERVER STARTED')
+
+    try:
+        while True:
+            client_socket, client_address = server_socket.accept()
+            print('CLIENT CONNECTED:', client_address)
+
+            client_thread = threading.Thread(target=handle_client, args=(client_socket, client_address))
+            client_thread.start()
+    finally:
+        server_socket.close()
 
 if __name__ == '__main__':
-    servidor = concetar_ao_servidor()
-
-    while True:
-        conexao_corrente, cliente, username = confirmacao_do_cliente(servidor)
-        thread = threading.Thread(target=handle_client, args=(conexao_corrente, cliente, username))
-        thread.start()
-    sys.exit()
+    main()
