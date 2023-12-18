@@ -61,9 +61,10 @@ def process_message(message, client_socket, address, username):
     elif command == 'LISTA':
         return ', '.join(active_users.keys()), username
     elif command == 'SAIR':
-        active_users.pop(username)
-        client_socket.close()
-        print("Cliente desconectado")
+        active_users.pop(username, None)
+        client_socket.shutdown(socket.SHUT_RDWR)  # Desativa futuras transmissões e recepções
+        client_socket.close()  # Fecha o soquete
+        return None, ''
 
     return 'ERRO-999', ''
 

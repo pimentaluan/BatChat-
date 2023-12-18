@@ -21,10 +21,9 @@ def send_message():
         client_socket.send(message.encode())
         if message == 'SAIR':
             exit_command_sent = True
-            client_socket.close()
-            sys.exit()  # Encerra o programa
+            client_socket.shutdown(socket.SHUT_RDWR)  # Desativa futuras transmissões e recepções
+            client_socket.close()  # Fecha o soquete
             break
-
 def receive_message():
     while True:
         try:
@@ -61,4 +60,5 @@ while True:
         send_thread.start()
         send_thread.join()
     if exit_command_sent:  # Verifica se o comando SAIR foi enviado
+        client_socket.close()  # Fecha o soquete
         break  # Se foi, encerra o loop principal
