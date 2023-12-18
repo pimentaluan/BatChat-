@@ -1,0 +1,35 @@
+Comandos disponíveis:
+
+* NOVO <username> <password>: Registra um novo usuário.
+    Argumentos:
+        username: O nome de usuário do novo usuário.
+        password: A senha do novo usuário.
+
+* ENTRAR <username> <password>: Loga um usuário existente.
+    Argumentos:
+        username: O nome de usuário do usuário existente.
+        password: A senha do usuário existente.
+
+* LISTA: Lista todos os usuários registrados.
+
+* CHAT <username> <mensagem>: Inicia um chat com o usuário especificado, enviando mensagem.
+    Argumentos:
+        username: O nome de usuário do usuário com quem você deseja conversar.
+        mensagem: A mensagem que o usuário deseja enviar
+
+* SAIR: Encerra a conexão com o servidor.
+
+Erros possíveis:
+
+* ERRO-700: Você não está logado.
+* ERRO-702: Argumentos inválidos.
+* ERRO-703: Usuário já existe.
+* ERRO-704: Credenciais inválidas.
+* ERRO-999: Comando desconhecido.
+
+Palavras adicionais:
+
+* PASS-213: Usuário registrado com sucesso.
+* PASS-214: Login realizado com sucesso.
+* CHAT-215: Chat iniciado com sucesso.
+* CHAT-216: O usuário não está conectado.
