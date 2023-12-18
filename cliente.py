@@ -1,4 +1,3 @@
-# cliente:
 import socket
 import sys
 import threading
@@ -13,14 +12,18 @@ else:
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((HOST, PORT))
 
+exit_command_sent = False  # Variável para verificar se o comando SAIR foi enviado
+
 def send_message():
+    global exit_command_sent
     while True:
         message = input('Menssagem: ')
         client_socket.send(message.encode())
         if message == 'SAIR':
+            exit_command_sent = True
             client_socket.close()
+            sys.exit()  # Encerra o programa
             break
-
 
 def receive_message():
     while True:
@@ -31,8 +34,6 @@ def receive_message():
         if not message:
             break
         print(message.decode())
-
-
 
 message_translation = {
     'ERRO-700': 'Você não está logado.',
@@ -59,3 +60,5 @@ while True:
         send_thread = threading.Thread(target=send_message)
         send_thread.start()
         send_thread.join()
+    if exit_command_sent:  # Verifica se o comando SAIR foi enviado
+        break  # Se foi, encerra o loop principal
