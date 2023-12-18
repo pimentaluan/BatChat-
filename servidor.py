@@ -1,3 +1,4 @@
+# servidor:
 import socket
 import threading
 
@@ -7,59 +8,64 @@ active_users = {}
 
 def handle_client(client_socket, address):
     username = ''
-    while True:
-        try:
+    try:
+        while True:
             message = client_socket.recv(1024)
-        except ConnectionResetError:
-            print("Cliente desconectado inesperadamente")
-            break
-        if not message:
-            break
-        message = message.decode().strip()
-        print(f"Mensagem recebida de {username}: {message}")  # Log and display the received message
-        response, username = process_message(message, client_socket, address, username)
-        if 'Login bem-sucedido.' in response:
-            client_socket.send(response.encode())
-            client_socket.send(f'Bem-vindo, {username}! Você está conectado.\n\n'
-                               'Aqui estão os comandos disponíveis:\n'
-                               '- LISTA: Lista todos os usuários registrados.\n\n'
-                               '- CHAT <username> <mensagem>: Inicia um chat com o usuário especificado, enviando mensagem.\n'
-                               '  Exemplo: CHAT maria Olá, como você está?\n\n'
-                               '- SAIR: Encerra a conexão com o servidor.\n'.encode())
-        else:
-            client_socket.send(response.encode())
+            if not message:
+                break
+            message = message.decode().strip()
+            print(f"Mensagem recebida de {username}: {message}")  
+            response, username = process_message(message, client_socket, address, username)
+            if response is not None:
+                try:
+                    client_socket.send(response.encode())
+                except OSError as e:
+                    print(f"Erro ao enviar resposta: {e}")
+                    break
+            if response == 'PASS-217':
+                break  # Encerra o loop após o comando SAIR
+    except OSError as e:
+        print(f"Erro de socket: {e}")
+    finally:
+        print("Cliente desconectado")
+        client_socket.close()
 
 def process_message(message, client_socket, address, username):
     parts = message.split(' ')
     command = parts[0]
     if command == 'NOVO':
-        _, username, password = message.split(' ')
+        if len(parts) != 3:
+            return 'ERRO-702', ''
+        _, username, password = parts
         if username in active_users:
-            return 'Nome de usuário já existe.', username
+            return 'ERRO-703', ''
         active_users[username] = {'password': password, 'socket': client_socket}
-        return 'Usuário registrado com sucesso.', username
+        return 'PASS-213', username
     elif command == 'ENTRAR':
-        _, username, password = message.split(' ')
+        if len(parts) != 3:
+            return 'ERRO-702', ''
+        _, username, password = parts
         if username not in active_users or active_users[username]['password'] != password:
-            return 'Nome de usuário ou senha incorretos.', ''
-        return 'Login bem-sucedido.', username
+            return 'ERRO-704', ''
+        return 'PASS-214', username
     elif command == 'CHAT':
+        if len(parts) < 3:
+            return 'ERRO-702', ''
         _, target, *msg_parts = parts
         msg = ' '.join(msg_parts)
         if target in active_users:
             active_users[target]['socket'].send(f'{username}: {msg}'.encode())
-            return 'Mensagem enviada.', username
+            return 'CHAT-215', username
         else:
-            return 'Usuário alvo não está online.', username
-
+            return 'CHAT-216', username
     elif command == 'LISTA':
         return ', '.join(active_users.keys()), username
-    
     elif command == 'SAIR':
-        active_users.pop(username, None)
+        active_users.pop(username)
         client_socket.close()
-        return 'Desconectado com sucesso.', ''
-    return 'Comando inválido.', username
+        print("Cliente desconectado")
+
+    return 'ERRO-999', ''
 
 def main():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

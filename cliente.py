@@ -15,18 +15,24 @@ client_socket.connect((HOST, PORT))
 
 def send_message():
     while True:
-        message = input()
-        if message == 'exit':
-            client_socket.send(message.encode())
-            break
+        message = input('Menssagem: ')
         client_socket.send(message.encode())
+        if message == 'SAIR':
+            client_socket.close()
+            break
+
 
 def receive_message():
     while True:
-        message = client_socket.recv(1024)
+        try:
+            message = client_socket.recv(1024)
+        except OSError:
+            break
         if not message:
             break
         print(message.decode())
+
+
 
 message_translation = {
     'ERRO-700': 'Você não está logado.',
