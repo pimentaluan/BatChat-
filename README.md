@@ -1,7 +1,8 @@
+#oi
 ● Título do projeto: BatChat;
 
 ● Autores: Luan Pimenta Fernandes - luan.pimenta@academico.ifpb.edu.br
-           #Pedro Arthur de Holanda Nery - arthur.nery@academico.ifpb.edu.br
+           Pedro Arthur de Holanda Nery - arthur.nery@academico.ifpb.edu.br
            Jonata Nascimento Barbosa - jonata.barbosa@academico.ifpb.edu.br;
            
 ● Disciplinas: Protocolos e Interconexão de Redes de Computadores - Leonidas Francisco de Lima Junior;
