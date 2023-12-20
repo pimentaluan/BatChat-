@@ -1,4 +1,3 @@
-#oi
 ● Título do projeto: BatChat;
 
 ● Autores: Luan Pimenta Fernandes - luan.pimenta@academico.ifpb.edu.br
