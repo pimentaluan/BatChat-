@@ -1,64 +1,92 @@
+# servidor:
 import socket
-import sys
 import threading
 
-if len(sys.argv) > 2:
-    HOST = sys.argv[1]
-    PORT = int(sys.argv[2])
-else:
-    HOST = '127.0.0.1'
-    PORT = 50000
+HOST = ''
+PORT = 50000
+active_users = {}
+lock_active_users = threading.Lock()
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((HOST, PORT))
-
-exit_command_sent = False  # Variável para verificar se o comando SAIR foi enviado
-
-def send_message():
-    global exit_command_sent
-    while True:
-        message = input('Menssagem: ')
-        client_socket.send(message.encode())
-        if message == 'SAIR':
-            exit_command_sent = True
-            client_socket.shutdown(socket.SHUT_RDWR)  # Desativa futuras transmissões e recepções
-            client_socket.close()  # Fecha o soquete
-            break
-def receive_message():
-    while True:
-        try:
+def handle_client(client_socket, address):
+    username = ''
+    try:
+        while True:
             message = client_socket.recv(1024)
-        except OSError:
-            break
-        if not message:
-            break
-        print(message.decode())
+            if not message:
+                break
+            message = message.decode().strip()
+            print(f"Mensagem recebida de {username}: {message}")  
+            response, username = process_message(message, client_socket, address, username)
+            if response is not None:
+                try:
+                    client_socket.send(response.encode())
+                except OSError as e:
+                    print(f"Erro ao enviar resposta: {e}")
+                    break
+            if response == 'PASS-217':
+                break  # Encerra o loop após o comando SAIR
+    except OSError as e:
+        print(f"Erro de socket: {e}")
+    finally:
+        print("Cliente desconectado")
+        client_socket.close()
 
-message_translation = {
-    'ERRO-700': 'Você não está logado.',
-    'ERRO-702': 'Argumentos inválidos.',
-    'ERRO-703': 'Nome de usuário já existe.',
-    'PASS-213': 'Usuário registrado com sucesso.',
-    'ERRO-704': 'Credenciais inválidas.',
-    'PASS-214': 'Login realizado com sucesso.',
-    'CHAT-215': 'Mensagem enviada com sucesso',
-    'CHAT-216': 'Usuário alvo não está online.',
-    'PASS-217': 'Desconectado com sucesso.',
-    'ERRO-999': 'Comando inválido.'
-}
+def process_message(message, client_socket, address, username):
+    parts = message.split(' ')
+    command = parts[0]
 
-username = ''
-while True:
-    command = input('Digite um comando: ')
-    client_socket.send(command.encode())
-    response = client_socket.recv(1024).decode()
-    print(f'{response}: {message_translation.get(response, response)}')
-    if command.startswith('ENTRAR') and 'PASS-214' in response:
-        username = command.split(' ')[1]
-        threading.Thread(target=receive_message).start()
-        send_thread = threading.Thread(target=send_message)
-        send_thread.start()
-        send_thread.join()
-    if exit_command_sent:  # Verifica se o comando SAIR foi enviado
+    if command == 'NOVO':
+        with lock_active_users:
+            if len(parts) != 3:
+                return ['ERRO-702', '']
+            _, username, password = parts
+            if username in active_users:
+                return ['ERRO-703', '']
+            active_users[username] = {'password': password, 'socket': client_socket}
+            return ['PASS-213', username]
+        
+    elif command == 'ENTRAR':
+        with lock_active_users:
+            if len(parts) != 3:
+                return ['ERRO-702', '']
+            _, username, password = parts
+            if username not in active_users or active_users[username]['password'] != password:
+                return ['ERRO-704', '']
+            return ['PASS-214', username]
+    
+    elif command == 'CHAT':
+        with lock_active_users:
+            if len(parts) < 3:
+                return ['ERRO-702', '']
+            _, target, *msg_parts = parts
+            msg = ' '.join(msg_parts)
+            if target in active_users:
+                active_users[target]['socket'].send(f'{username}: {msg}'.encode())
+                return ['CHAT-215', username]
+            else:
+                return ['CHAT-216', username]
+        
+    elif command == 'LISTA':
+        return [', '.join(active_users.keys()), username]
+    
+    elif command == 'SAIR':
+        active_users.pop(username)
+        client_socket.shutdown(socket.SHUT_RDWR)  # Desativa futuras transmissões e recepções
         client_socket.close()  # Fecha o soquete
-        break  # Se foi, encerra o loop principal
+        return [None, '']
+
+    return ['ERRO-999', '']
+
+def main():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.bind((HOST, PORT))
+    server_socket.listen(5)
+    print('Servidor iniciado.')
+    while True:
+        client_socket, address = server_socket.accept()
+        threading.Thread(target=handle_client, args=(client_socket, address)).start()
+    server_socket.close()
+
+if __name__ == '__main__':
+    main()
