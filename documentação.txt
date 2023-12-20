@@ -31,5 +31,5 @@ Palavras adicionais:
 
 * PASS-213: Usuário registrado com sucesso.
 * PASS-214: Login realizado com sucesso.
-* CHAT-215: Chat iniciado com sucesso.
+* CHAT-215: Mensagem enviada com sucesso.
 * CHAT-216: O usuário não está conectado.
