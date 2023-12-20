@@ -1,11 +1,15 @@
 import socket
 import threading
 
+# HOST vazio para aceitar conexões em todas as interfaces 
 HOST = ''
 PORT = 50000
+
+# variáveis globais para manter o estado dos usuários ativos e outra para garantir a consistência dos dados em multi-threaded
 active_users = {}
 lock_active_users = threading.Lock()
 
+# processamento da comunicação lidando com mensagens, comandos e estado do usuário
 def handle_client(client_socket, address):
     username = ''
     try:
@@ -23,13 +27,14 @@ def handle_client(client_socket, address):
                     print(f"Erro ao enviar resposta: {e}")
                     break
             if response == 'PASS-217':
-                break  # Encerra o loop após o comando SAIR
+                break  # encerra o loop após o comando SAIR
     except OSError as e:
         print(f"Erro de socket: {e}")
     finally:
         print("Cliente desconectado")
         client_socket.close()
 
+#porcessamento das mensagens recebidas vinda do cliente executando os comandos
 def process_message(message, client_socket, address, username):
     parts = message.split(' ')
     command = parts[0]
@@ -76,6 +81,7 @@ def process_message(message, client_socket, address, username):
 
     return ['ERRO-999', '']
 
+#configuração de inicialização do servidor, aceitando conexões e criando as threads para tratar cada cliente
 def main():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

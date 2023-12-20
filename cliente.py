@@ -2,6 +2,7 @@ import socket
 import sys
 import threading
 
+#permite a especificação do host ou usa valores padrão
 if len(sys.argv) > 2:
     HOST = sys.argv[1]
     PORT = int(sys.argv[2])
@@ -12,8 +13,9 @@ else:
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((HOST, PORT))
 
-exit_command_sent = False  # Variável para verificar se o comando SAIR foi enviado
+exit_command_sent = False  # variável para verificar se o comando SAIR foi enviado
 
+#envia mensagens para o servidor
 def send_message():
     global exit_command_sent
     while True:
@@ -24,6 +26,7 @@ def send_message():
             client_socket.shutdown(socket.SHUT_RDWR)  # Desativa futuras transmissões e recepções
             client_socket.close()  # Fecha o soquete
             break
+#recebe as mensagens do servidor        
 def receive_message():
     while True:
         try:
@@ -48,6 +51,7 @@ message_translation = {
 }
 
 username = ''
+#solicita comandos, envia ao servidor e recebe as repostas exibindo-as
 while True:
     command = input('Digite um comando: ').upper()
     client_socket.send(command.encode())
