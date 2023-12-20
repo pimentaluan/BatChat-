@@ -17,7 +17,7 @@ exit_command_sent = False  # Variável para verificar se o comando SAIR foi envi
 def send_message():
     global exit_command_sent
     while True:
-        message = input('Menssagem: ')
+        message = input('Menssagem: ').upper()
         client_socket.send(message.encode())
         if message == 'SAIR':
             exit_command_sent = True
@@ -38,18 +38,18 @@ message_translation = {
     'ERRO-700': 'Você não está logado.',
     'ERRO-702': 'Argumentos inválidos.',
     'ERRO-703': 'Nome de usuário já existe.',
-    'PASS-213': 'Usuário registrado com sucesso.',
     'ERRO-704': 'Credenciais inválidas.',
+    'ERRO-999': 'Comando inválido.',
+    'PASS-213': 'Usuário registrado com sucesso.',
     'PASS-214': 'Login realizado com sucesso.',
-    'CHAT-215': 'Mensagem enviada com sucesso',
-    'CHAT-216': 'Usuário alvo não está online.',
     'PASS-217': 'Desconectado com sucesso.',
-    'ERRO-999': 'Comando inválido.'
+    'CHAT-215': 'Mensagem enviada com sucesso',
+    'CHAT-216': 'Usuário alvo não está online.'
 }
 
 username = ''
 while True:
-    command = input('Digite um comando: ')
+    command = input('Digite um comando: ').upper()
     client_socket.send(command.encode())
     response = client_socket.recv(1024).decode()
     print(f'{response}: {message_translation.get(response, response)}')
