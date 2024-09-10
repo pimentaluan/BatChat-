@@ -1,47 +1,60 @@
-● Título do projeto: BatChat;
+# BatChat 🦇💬
 
-● Autores: Luan Pimenta Fernandes - luan.pimenta@academico.ifpb.edu.br
-           Pedro Arthur de Holanda Nery - arthur.nery@academico.ifpb.edu.br
-           Jonata Nascimento Barbosa - jonata.barbosa@academico.ifpb.edu.br;
-           
-● Disciplinas: Protocolos e Interconexão de Redes de Computadores - Leonidas Francisco de Lima Junior;
+O BatChat é um chat simples desenvolvido em Python utilizando a API de sockets. Este projeto tem como objetivo permitir a comunicação entre clientes em um ambiente de chat, com funcionalidades básicas como criação de usuário, login, listagem de usuários online e envio de mensagens.
 
-● Descrição do problema: O nosso programa é um chat feito com a API de sockets em python, no qual o cliente ao se conectar ao servidor, consegue criar um usuário, fazer login em um usuário, listar os usuários online, mandar um chat e sair;
 
-● Arquivos do Projeto: 
-servidor.py: Este arquivo contém o código do servidor para o chat BatChat. Ele é responsável por aceitar conexões de clientes, processar comandos enviados pelos clientes e encaminhar mensagens entre os clientes. O servidor mantém um registro de todos os usuários ativos e suas respectivas conexões de soquete. Ele usa threads para lidar com múltiplos clientes simultaneamente.
+## Tecnologias Usadas
 
-cliente.py: Este arquivo contém o código do cliente para o chat BatChat. Ele é responsável por conectar-se ao servidor, enviar comandos ao servidor e receber respostas. O cliente pode enviar comandos para criar um usuário, fazer login, listar usuários online, enviar uma mensagem e sair. As respostas do servidor são exibidas para o usuário.;
+<div style="display:flex">
+  <img aling="center" alt="python" src="https://img.shields.io/badge/Python-14354C?style=for-the-badge&logo=python&logoColor=white">
+</div>
 
-● Pré-requisitos para execução: 
-Python 3.x: Linguagem de programação usada para desenvolver o projeto. Pode ser instalado a partir do site oficial do Python.
-Biblioteca socket: Biblioteca padrão do Python para criar conexões de rede. Não requer instalação adicional.
-Biblioteca threading: Biblioteca padrão do Python para suporte a threads. É usada para permitir que o servidor lide com múltiplos clientes simultaneamente. Não requer instalação adicional.
-Biblioteca sys: Biblioteca padrão do Python para acessar algumas variáveis usadas ou mantidas pelo interpretador Python. É usada para acessar argumentos da linha de comando. Não requer instalação adicional.;
+## Funcionalidades Principais 📝🔍
 
-● Protocolo da Aplicação: 
-O protocolo da aplicação consiste em uma série de comandos que o cliente pode enviar ao servidor, como NOVO para criar um usuário, ENTRAR para fazer login, LISTA para listar usuários online, CHAT para enviar uma mensagem e SAIR para desconectar.;
+- **Cadastro de Usuário:** Permite criar um novo usuário com nome de usuário e senha.
+- **Login de Usuário:** Permite que um usuário existente faça login no sistema.
+- **Listagem de Usuários Online:** Mostra a lista de todos os usuários que estão atualmente online.
+- **Envio de Mensagens:** Permite enviar mensagens para outros usuários registrados.
+- **Desconexão:** Permite que um usuário encerre sua conexão com o servidor.
 
-● Instruções para execução: 
-Execute o arquivo servidor.py para iniciar o servidor.
-Em um terminal separado, execute o arquivo cliente.py para iniciar o cliente.
-Comandos disponíveis:
+## Instalação e Configuração ⚙️🔧
 
-* NOVO <username> <password>: Registra um novo usuário.
-    Argumentos:
-        username: O nome de usuário do novo usuário.
-        password: A senha do novo usuário.
+1. **Clone o repositório:**
+    ```
+    https://github.com/pimentaluan/BatChat-.git
+    ```
 
-* ENTRAR <username> <password>: Loga um usuário existente.
-    Argumentos:
-        username: O nome de usuário do usuário existente.
-        password: A senha do usuário existente.
+2. **Certifique-se de ter o Python 3.x instalado:** A biblioteca padrão do Python já inclui `socket`, `threading` e `sys`, então não são necessárias instalações adicionais.
 
-* LISTA: Lista todos os usuários registrados.
+3. **Execute o servidor:**
+    Navegue até o diretório onde o `servidor.py` está localizado e execute:
+    ```
+    python servidor.py
+    ```
 
-* CHAT <username> <mensagem>: Inicia um chat com o usuário especificado, enviando mensagem.
-    Argumentos:
-        username: O nome de usuário do usuário com quem você deseja conversar.
-        mensagem: A mensagem que o usuário deseja enviar
+4. **Execute o cliente:**
+    Em um terminal separado, navegue até o diretório onde o `cliente.py` está localizado e execute:
+    ```
+    python cliente.py
+    ```
 
-* SAIR: Encerra a conexão com o servidor.;
+## Comandos Disponíveis
+
+- **NOVO <username> <password>:** Registra um novo usuário.
+    - **Argumentos:**
+        - `username`: O nome de usuário do novo usuário.
+        - `password`: A senha do novo usuário.
+
+- **ENTRAR <username> <password>:** Loga um usuário existente.
+    - **Argumentos:**
+        - `username`: O nome de usuário do usuário existente.
+        - `password`: A senha do usuário existente.
+
+- **LISTA:** Lista todos os usuários registrados.
+
+- **CHAT <username> <mensagem>:** Inicia um chat com o usuário especificado, enviando a mensagem.
+    - **Argumentos:**
+        - `username`: O nome de usuário do destinatário.
+        - `mensagem`: A mensagem a ser enviada.
+
+- **SAIR:** Encerra a conexão com o servidor.
